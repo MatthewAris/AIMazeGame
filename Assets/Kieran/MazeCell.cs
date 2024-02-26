@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class maze : MonoBehaviour
+public class MazeCell : MonoBehaviour
 {
     [SerializeField]
     private GameObject _leftWall;
