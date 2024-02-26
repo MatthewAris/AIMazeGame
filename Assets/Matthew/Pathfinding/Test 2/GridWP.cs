@@ -1,8 +1,7 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class NewBehaviourScript : MonoBehaviour
+public class GridWP : MonoBehaviour
 {
     public class Node
     {
@@ -11,19 +10,19 @@ public class NewBehaviourScript : MonoBehaviour
 
         private GameObject waypoint = new GameObject();
         private List<Node> neighbours = new List<Node>();
-        public int Depth { get => depth; set => depth = value; }    
+        public int Depth { get => depth; set => depth = value; }
         public bool Walkable { get => walkable; set => walkable = value; }
 
         public GameObject Waypoint { get => waypoint; set => waypoint = value; }
-        public List<Node> Neighbours { get => neighbours; set => neighbours = value; }  
-        
-        public Node() 
+        public List<Node> Neighbours { get => neighbours; set => neighbours = value; }
+
+        public Node()
         {
             this.depth = -1;
             this.walkable = true;
         }
 
-        public Node(bool walkable) 
+        public Node(bool walkable)
         {
             this.depth = -1;
             this.walkable = walkable;
@@ -31,17 +30,20 @@ public class NewBehaviourScript : MonoBehaviour
 
         public override bool Equals(System.Object obj)
         {
-            if (obj == null) 
-                return false; 
-           
+            if (obj == null) return false;
+
             Node n = obj as Node;
-            
+
             if ((System.Object)n == null)
+            {
                 return false;
-            
+            }
+
             if (this.waypoint.transform.position.x == n.Waypoint.transform.position.x &&
                 this.waypoint.transform.position.z == n.Waypoint.transform.position.z)
+            {
                 return true;
+            }
 
             return false;
         }
@@ -58,7 +60,7 @@ public class NewBehaviourScript : MonoBehaviour
     Vector3 goal;
     float speed = 4.0f;
     float accuracy = 0.5f;
-    float rotSpeed = 4.0f;
+    float rotSpeed = 4f;
 
     int spacing = 5;
 
@@ -115,22 +117,22 @@ public class NewBehaviourScript : MonoBehaviour
         };
 
         // Initialise grid points
-        for (int i = 0; i < grid.GetLength(0); i++) 
-        { 
+        for (int i = 0; i < grid.GetLength(0); i++)
+        {
             for (int j = 0; j < grid.GetLength(1); j++)
             {
                 grid[i, j].Waypoint = Instantiate(prefabWaypoint, new Vector3(i * spacing, this.transform.position.y, j * spacing), Quaternion.identity);
 
-                if (!grid[i,j].Walkable)
+                if (!grid[i, j].Walkable)
                     grid[i, j].Waypoint.GetComponent<Renderer>().material = wallMat;
                 else
-                    grid[i,j].Neighbours = getAdjacentNodes(grid, i, j);     
+                    grid[i, j].Neighbours = getAdjacentNodes(grid, i, j);
             }
         }
 
         startNode = grid[0, 0];
         endNode = grid[6, 5];
-        startNode.Walkable = true; 
+        startNode.Walkable = true;
         endNode.Walkable = true;
         endNode.Waypoint.GetComponent<Renderer>().material = goalMat;
 
@@ -139,35 +141,35 @@ public class NewBehaviourScript : MonoBehaviour
 
     void LateUpdate()
     {
-        // Calculate shortest path when the retunr key is pressed
+        // Calculate shortest path when the return key is pressed
         if (Input.GetKeyDown(KeyCode.Return))
         {
             this.transform.position = new Vector3(startNode.Waypoint.transform.position.x, this.transform.position.y, startNode.Waypoint.transform.position.z);
             curNode = 0;
             path.Add(grid[0, 1]);
             path.Add(endNode);
+        }
+        // If there's no path
+        if (path.Count == 0) return;
 
-            // If there's no path
-            if (path.Count == 0)  return; 
+        // set the goal position 
+        goal = new Vector3(path[curNode].Waypoint.transform.position.x, this.transform.position.y, path[curNode].Waypoint.transform.position.z);
 
-            // set the goal position 
-            goal = new Vector3(path[curNode].Waypoint.transform.position.x, this.transform.position.y, path[curNode].Waypoint.transform.position.z);
+        // set the direction
+        Vector3 direction = goal - this.transform.position;
 
-            // set the direction
-            Vector3 direction = goal - this.transform.position;
-            
-            // Move towards the goal or increase the counter to set another goal in the next iteration.
-            if (direction.magnitude > accuracy)
-            {
-                this.transform.rotation = Quaternion.Slerp(this.transform.rotation, Quaternion.LookRotation(direction), Time.deltaTime * rotSpeed);
-                this.transform.Translate(0, 0, speed * Time.deltaTime);
-            }
-            else
-            {
-                if (curNode < path.Count - 1)
-                    curNode++;
-            }
+        // Move towards the goal or increase the counter to set another goal in the next iteration.
+        if (direction.magnitude > accuracy)
+        {
+            this.transform.rotation = Quaternion.Slerp(this.transform.rotation, Quaternion.LookRotation(direction), Time.deltaTime * rotSpeed);
+            this.transform.Translate(0, 0, speed * Time.deltaTime);
+        }
+        else
+        {
+            if (curNode < path.Count - 1)
+                curNode++;
         }
     }
 }
+
 
