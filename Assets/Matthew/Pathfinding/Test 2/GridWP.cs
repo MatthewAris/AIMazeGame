@@ -102,18 +102,70 @@ public class GridWP : MonoBehaviour
         return list;
     }
 
+    List<Node> BFS(Node start, Node end)
+    {
+        Queue<Node> toVisit = new Queue<Node>();
+        List<Node> visited = new List<Node>();
+
+        Node currentNode = start;
+        currentNode.Depth = 0;
+        toVisit.Enqueue(currentNode);
+
+        List<Node> finalPath = new List<Node>();
+
+        while (toVisit.Count > 0)
+        {
+            currentNode = toVisit.Dequeue();
+
+            if (visited.Contains(currentNode))
+                continue;
+
+            visited.Add(currentNode);
+
+            if (currentNode.Equals(end))
+            {
+                while (currentNode.Depth != 0)
+                {
+                    foreach (Node n in currentNode.Neighbours)
+                    {
+                        if (n.Depth == currentNode.Depth - 1)
+                        {
+                            finalPath.Add(currentNode);
+                            currentNode = n;
+                            break;
+                        }
+                    }
+                }
+                finalPath.Reverse();
+                break;
+            }
+            else
+            {
+                foreach (Node n in currentNode.Neighbours)
+                {
+                    if (!visited.Contains(n) && n.Walkable)
+                    {
+                        n.Depth = currentNode.Depth + 1;
+                        toVisit.Enqueue(n);
+                    }
+                }
+            }
+        }
+        return finalPath;
+    }
+
     void Start()
     {
         // Create grid
         grid = new Node[,]
         {
-           { new Node(), new Node(),      new Node(false), new Node(),      new Node(),      new Node() },
-           { new Node(), new Node(false), new Node(),      new Node(),      new Node(),      new Node() },
-           { new Node(), new Node(false), new Node(),      new Node(),      new Node(),      new Node() },
-           { new Node(), new Node(),      new Node(),      new Node(false), new Node(),      new Node() },
-           { new Node(), new Node(),      new Node(),      new Node(),      new Node(false), new Node() },
-           { new Node(), new Node(),      new Node(false), new Node(),      new Node(false), new Node() },
-           { new Node(), new Node(false), new Node(false), new Node(),      new Node(),      new Node() }
+           { new Node(), new Node(false), new Node(), new Node(), new Node(), new Node() },
+           { new Node(), new Node(false), new Node(), new Node(false), new Node(false), new Node() },
+           { new Node(), new Node(false), new Node(), new Node(), new Node(), new Node() },
+           { new Node(), new Node(false), new Node(), new Node(false), new Node(), new Node() },
+           { new Node(), new Node(false), new Node(), new Node(false), new Node(false), new Node() },
+           { new Node(), new Node(false), new Node(), new Node(false), new Node(), new Node() },
+           { new Node(), new Node(), new Node(), new Node(false), new Node(), new Node() }
         };
 
         // Initialise grid points
@@ -146,8 +198,7 @@ public class GridWP : MonoBehaviour
         {
             this.transform.position = new Vector3(startNode.Waypoint.transform.position.x, this.transform.position.y, startNode.Waypoint.transform.position.z);
             curNode = 0;
-            path.Add(grid[0, 1]);
-            path.Add(endNode);
+            path = BFS(startNode, endNode);
         }
         // If there's no path
         if (path.Count == 0) return;
@@ -171,5 +222,3 @@ public class GridWP : MonoBehaviour
         }
     }
 }
-
-
